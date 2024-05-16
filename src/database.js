@@ -97,12 +97,7 @@ class Database {
       item.name.toLowerCase().includes(query.toLowerCase())
     );
 
-    console.log(data);
     return data;
-  }
-
-  searchByCondition(condition) {
-    return this.data.filter((item) => item[condition.key] === condition.value);
   }
 }
 

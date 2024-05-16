@@ -1,6 +1,15 @@
 const Hapi = require("@hapi/hapi");
 const database = require("./database");
 const { ResponseSuccess, ResponseError } = require("./response");
+
+const error = (e, h) => {
+  if (e instanceof ResponseError) {
+    return h.response(e.getResponse()).code(e.statusCode);
+  } else {
+    return h.response({ message: "Internal server error" }).code(500);
+  }
+};
+
 const init = async () => {
   const server = Hapi.server({
     port: 9000,
@@ -23,7 +32,7 @@ const init = async () => {
         });
         return h.response(res.getResponse()).code(res.statusCode);
       } catch (e) {
-        return h.response(e.getResponse()).code(e.statusCode);
+        return error(e, h);
       }
     },
   });
@@ -39,7 +48,6 @@ const init = async () => {
       if (nameQ || readingQ || finishedQ) {
         database.updateFilters();
         if (nameQ !== undefined) {
-          console.log("Name: ", nameQ);
           data = database
             .searchByNameContainsWith(nameQ)
             .map(({ id, name, publisher }) => {
@@ -47,12 +55,10 @@ const init = async () => {
             });
         } else if (readingQ !== undefined) {
           const reading = Boolean(Number(readingQ));
-          console.log("Reading: ", reading);
 
           data = reading ? database.isReading : database.isNotReading;
         } else if (finishedQ !== undefined) {
           const finished = Boolean(Number(finishedQ));
-          console.log("Finished: ", finished);
           data = finished ? database.isFinished : database.isNotFinished;
         }
       } else {
@@ -95,11 +101,7 @@ const init = async () => {
 
         return h.response(res.getResponse()).code(res.statusCode);
       } catch (e) {
-        if (e instanceof ResponseError) {
-          return h.response(e.getResponse()).code(e.statusCode);
-        } else {
-          console.log(e);
-        }
+        return error(e, h);
       }
     },
   });
@@ -118,7 +120,7 @@ const init = async () => {
         });
         return h.response(res.getResponse()).code(res.statusCode);
       } catch (e) {
-        return h.response(e.getResponse()).code(e.statusCode);
+        return error(e, h);
       }
     },
   });
@@ -135,7 +137,7 @@ const init = async () => {
         });
         return h.response(res.getResponse()).code(res.statusCode);
       } catch (e) {
-        return h.response(e.getResponse()).code(e.statusCode);
+        return error(e, h);
       }
     },
   });
